@@ -207,8 +207,12 @@ def documentos():
 @app.route('/documento/<int:documento_id>')
 def abrir_documento(documento_id):
     documento = Documento.query.get_or_404(documento_id)
-    return send_file(BytesIO(documento.conteudo), mimetype=documento.mime_type,
-                     download_name=documento.nome_arquivo, as_attachment=False)
+    # Renderiza um visualizador dentro do próprio sistema, em vez de abrir
+    # a imagem/PDF em uma nova aba sem navegação de volta.
+    if request.args.get('raw') == '1':
+        return send_file(BytesIO(documento.conteudo), mimetype=documento.mime_type,
+                         download_name=documento.nome_arquivo, as_attachment=False)
+    return render_template('visualizar_documento.html', documento=documento)
 
 @app.route('/admin/documento', methods=['POST'])
 @admin_required

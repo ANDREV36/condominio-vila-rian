@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-heading">
+  <div><div class="eyebrow">Documentos</div><h1 class="section-title">{{ documento.nome }}</h1></div>
+  <a class="button" href="{{ url_for('documentos') }}">← Voltar aos documentos</a>
+</div>
+<section class="panel document-viewer">
+  <div class="document-viewer-toolbar">
+    <span>{{ documento.nome_arquivo }}</span>
+    <a class="button secondary" href="{{ url_for('abrir_documento', documento_id=documento.id, raw=1) }}" download="{{ documento.nome_arquivo }}">⬇ Baixar</a>
+  </div>
+  {% if documento.mime_type.startswith('image/') %}
+    <div class="image-viewer"><img src="{{ url_for('abrir_documento', documento_id=documento.id, raw=1) }}" alt="{{ documento.nome }}"></div>
+  {% elif documento.mime_type == 'application/pdf' %}
+    <iframe class="pdf-viewer" src="{{ url_for('abrir_documento', documento_id=documento.id, raw=1) }}" title="{{ documento.nome }}"></iframe>
+  {% else %}
+    <div class="empty">Este arquivo não pode ser visualizado diretamente. Use o botão Baixar.</div>
+  {% endif %}
+  <div class="viewer-back"><a class="button" href="{{ url_for('documentos') }}">← Voltar</a></div>
+</section>
+{% endblock %}

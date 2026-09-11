@@ -6,7 +6,7 @@
 {% if documentos %}
 <div class="document-grid">
 {% for doc in documentos %}
-<a class="document-card" href="{{ url_for('abrir_documento', documento_id=doc.id) }}" target="_blank">
+<a class="document-card" href="{{ url_for('abrir_documento', documento_id=doc.id) }}">
 <div class="document-card-icon">{{ '🖼️' if doc.mime_type.startswith('image/') else '📄' }}</div>
 <div><strong>{{ doc.nome }}</strong><small>{{ doc.nome_arquivo }} · {{ '%.1f'|format(doc.tamanho / 1048576) }} MB</small></div><span>›</span>
 </a>
