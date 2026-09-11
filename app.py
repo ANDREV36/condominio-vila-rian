@@ -113,6 +113,21 @@ def globals_for_templates():
     caixa = Decimal(config.caixa_inicial if config else 0) + Decimal(receitas) - Decimal(despesas)
     return {'config': config, 'caixa_atual': caixa, 'usuario_admin': session.get('admin', False)}
 
+@app.route('/manifest.json')
+def manifest():
+    return jsonify({
+        'name': 'Condomínio Vila Rian',
+        'short_name': 'Vila Rian',
+        'start_url': '/',
+        'display': 'standalone',
+        'background_color': '#ffffff',
+        'theme_color': '#111111',
+        'icons': [
+            {'src': url_for('static', filename='icons/icon-192.png'), 'sizes': '192x192', 'type': 'image/png'},
+            {'src': url_for('static', filename='icons/icon-512.png'), 'sizes': '512x512', 'type': 'image/png'},
+        ],
+    })
+
 @app.route('/')
 def index():
     unidades = Unidade.query.filter_by(ativa=True).order_by(Unidade.numero).all()

@@ -3,6 +3,12 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{{ config.nome if config else 'Condomínio Vila Rian' }}</title>
+<link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='icons/icon-180.png') }}">
+<link rel="manifest" href="{{ url_for('manifest') }}">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vila Rian">
+<meta name="theme-color" content="#111111">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
 <style>
