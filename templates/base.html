@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ config.nome if config else 'Condomínio Vila Rian' }}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<style>
+.box-header{display:flex;align-items:center;gap:10px;font-size:1.05rem;font-weight:700;min-height:28px}
+.accordion-arrow{width:32px;height:32px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:transparent;color:#172033;border-radius:8px;font-size:.85rem;line-height:1}
+.accordion-arrow:hover{background:#eef2f7}
+.accordion-arrow[aria-expanded="true"]{transform:rotate(90deg)}
+.box-body{margin-top:16px}
+</style>
+</head>
+<body>
+<header><div><strong>🏘️ {{ config.nome if config else 'Condomínio Vila Rian' }}</strong><span>Prestação de contas</span></div><nav><a href="{{ url_for('index') }}">Início</a>{% if usuario_admin %}<a href="{{ url_for('admin') }}">Administração</a><a href="{{ url_for('sair') }}">Sair</a>{% else %}<a href="{{ url_for('login') }}">🔒 Administrador</a>{% endif %}</nav></header>
+<main>{% with messages=get_flashed_messages(with_categories=true) %}{% for category,message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}{% endwith %}{% block content %}{% endblock %}</main>
+<footer>Condomínio Vila Rian · Sistema de contas</footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.accordion-arrow').forEach(function (arrow) {
+    arrow.addEventListener('click', function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      const targetId = arrow.getAttribute('aria-controls');
+      const body = document.getElementById(targetId);
+      if (!body) return;
+      const opening = body.hidden;
+      body.hidden = !opening;
+      arrow.setAttribute('aria-expanded', String(opening));
+    });
+  });
+});
+</script>
+</body></html>

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}{% block content %}
+<section class="panel narrow admin-login">
+  <div class="admin-lock">🔒</div>
+  <h1>Área do Administrador</h1>
+  <p class="muted">A consulta do condomínio é pública. Somente esta área precisa de senha.</p>
+  <form method="post">
+    <label>Senha do administrador
+      <input type="password" name="senha" autocomplete="current-password" required autofocus>
+    </label>
+    <button type="submit">Entrar na Administração</button>
+  </form>
+  <a class="back-link" href="{{ url_for('index') }}">← Voltar para o painel público</a>
+</section>
+{% endblock %}

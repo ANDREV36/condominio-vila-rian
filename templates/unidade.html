@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="back" href="{{ url_for('index', ano=ano) }}">← Voltar para unidades</a>
+
+<section class="panel unit-detail-panel">
+  <div class="unit-detail-head">
+    <div>
+      <div class="eyebrow">Situação da unidade</div>
+      <h1>⌂ {{ unidade.numero }} — {{ unidade.responsavel }}</h1>
+      <p>Mensalidade: <strong>R$ {{ '%.2f'|format(unidade.valor_mensal)|replace('.', ',') }}</strong></p>
+    </div>
+    <div class="year-total">
+      <small>Total pago em {{ ano }}</small>
+      <strong>R$ {{ '%.2f'|format(total_pago_ano)|replace('.', ',') }}</strong>
+    </div>
+  </div>
+</section>
+
+<section class="panel payment-status-panel">
+  <div class="payment-title-row">
+    <div>
+      <h2>Pagamentos de {{ ano }}</h2>
+      <p>✓ verde = pago &nbsp; • &nbsp; <span class="red-text">!</span> vermelho = vencido após o dia 10</p>
+    </div>
+  </div>
+
+  <div class="month-list">
+    {% for item in meses_status %}
+    <div class="month-row {{ item.status }}">
+      <strong>{{ item.nome }}</strong>
+      <span>{% if item.pago %}R$ {{ '%.2f'|format(item.pagamento.valor)|replace('.', ',') }}{% else %}-{% endif %}</span>
+      {% if item.pago %}
+        <i class="status-dot ok">✓</i>
+      {% elif item.vencido %}
+        <i class="status-dot pending">!</i>
+      {% else %}
+        <i class="status-dot future">•</i>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="detail-footer">
+    <div><strong>Mensalidade: R$ {{ '%.2f'|format(unidade.valor_mensal)|replace('.', ',') }}</strong><br><span>Valor definido no cadastro da unidade</span></div>
+    <a class="close-button" href="{{ url_for('index', ano=ano) }}">Fechar</a>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}{% block content %}
+<section class="panel" style="max-width:520px;margin:auto">
+<h1>🔑 Trocar senha do administrador</h1>
+<p>Defina uma nova senha que somente você conheça.</p>
+<form method="post">
+<label>Senha atual<input type="password" name="senha_atual" required autocomplete="current-password"></label>
+<label>Nova senha<input type="password" name="nova_senha" required minlength="8" autocomplete="new-password"></label>
+<label>Confirmar nova senha<input type="password" name="confirmar_senha" required minlength="8" autocomplete="new-password"></label>
+<button type="submit">Salvar nova senha</button>
+</form>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}{% block content %}<h1>Administração</h1>
+
+<section class="panel collapsible"><div class="box-header"><button type="button" class="accordion-arrow" aria-expanded="false" aria-controls="box-unidades">▶</button><span>Unidades cadastradas</span></div><div id="box-unidades" class="box-body" hidden>
+{% if unidades %}
+<div class="tablewrap"><table><thead><tr><th>Unidade</th><th>Responsável</th><th>Valor mensal</th><th>Ação</th></tr></thead><tbody>
+{% for u in unidades %}<tr><form method="post" action="{{ url_for('editar_unidade', unidade_id=u.id) }}"><td><input name="numero" value="{{ u.numero }}" required></td><td><input name="responsavel" value="{{ u.responsavel }}" required></td><td><input name="valor_mensal" value="{{ '%.2f'|format(u.valor_mensal)|replace('.', ',') }}" required></td><td><button type="submit">Salvar alteração</button></td></form></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<p>Nenhuma unidade cadastrada.</p>{% endif %}
+</div></section>
+<section class="panel collapsible"><div class="box-header"><button type="button" class="accordion-arrow" aria-expanded="false" aria-controls="box-importar">▶</button><span>Importar pagamentos de 2026</span></div><div id="box-importar" class="box-body" hidden><p>Usa os pagamentos da planilha informada: R$ 40,00 por pagamento, com data no dia 5. Células vazias não são lançadas e pagamentos já existentes não são duplicados.</p><form method="post" action="{{ url_for('importar_pagamentos_2026_web') }}"><button type="submit">Importar pagamentos de 2026</button></form></div></section>
+<section class="panel collapsible"><div class="box-header"><button type="button" class="accordion-arrow" aria-expanded="false" aria-controls="box-caixa">▶</button><span>Caixa inicial</span></div><div id="box-caixa" class="box-body" hidden><form method="post" action="{{ url_for('salvar_config') }}" class="inline"><label>Valor<input name="caixa_inicial" value="{{ '%.2f'|format(config.caixa_inicial)|replace('.', ',') }}"></label><button>Salvar</button></form></div></section>
+<div class="grid2"><section class="panel collapsible"><div class="box-header"><button type="button" class="accordion-arrow" aria-expanded="false" aria-controls="box-cadastro">▶</button><span>Cadastrar unidade</span></div><div id="box-cadastro" class="box-body" hidden><form method="post" action="{{ url_for('cadastrar_unidade') }}"><label>Unidade<input name="numero" placeholder="Casa 1" required></label><label>Responsável<input name="responsavel" required></label><label>Valor mensal<input name="valor_mensal" placeholder="300,00" required></label><button>Cadastrar</button></form></div></section><section class="panel collapsible"><div class="box-header"><button type="button" class="accordion-arrow" aria-expanded="false" aria-controls="box-pagamento">▶</button><span>Lançar pagamento</span></div><div id="box-pagamento" class="box-body" hidden><form method="post" action="{{ url_for('cadastrar_pagamento') }}"><label>Unidade<select name="unidade_id" required>{% for u in unidades %}<option value="{{u.id}}">{{u.numero}} — {{u.responsavel}}</option>{% endfor %}</select></label><label>Competência<input type="month" name="competencia" required></label><label>Data<input type="date" name="data_pagamento" required></label><label>Valor<input name="valor" required></label><label>Observação<input name="observacao"></label><button>Lançar pagamento</button></form></div></section></div>
+<section class="panel collapsible"><div class="box-header"><button type="button" class="accordion-arrow" aria-expanded="false" aria-controls="box-despesa">▶</button><span>Lançar despesa</span></div><div id="box-despesa" class="box-body" hidden>
+<form method="post" action="{{ url_for('cadastrar_despesa') }}" class="gridform">
+<label>Data<input type="date" name="data" required></label>
+<label>Descrição<input name="descricao" required placeholder="Ex.: Conta de luz"></label>
+<label>Valor<input name="valor" required placeholder="0,00"></label>
+<button>Lançar despesa</button>
+</form></div></section>
+
+<section class="panel collapsible"><div class="box-header"><button type="button" class="accordion-arrow" aria-expanded="false" aria-controls="box-despesas">▶</button><span>Despesas lançadas</span></div><div id="box-despesas" class="box-body" hidden>
+<form method="get" action="{{ url_for('admin') }}" class="gridform" style="margin:12px 0">
+<label>Data inicial<input type="date" name="despesa_inicio" value="{{ despesa_inicio or '' }}"></label>
+<label>Data final<input type="date" name="despesa_fim" value="{{ despesa_fim or '' }}"></label>
+<div style="display:flex;gap:8px;align-items:end"><button type="submit">Filtrar</button><a href="{{ url_for('admin') }}" class="button">Limpar</a></div>
+</form>
+{% if despesas %}
+<p><strong>{{ despesas|length }}</strong> despesa(s) encontrada(s) — <strong>Total: R$ {{ '%.2f'|format(total_despesas)|replace('.', ',') }}</strong></p>
+<div class="tablewrap"><table><thead><tr><th>Data</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr></thead><tbody>
+{% for d in despesas %}
+<tr>
+<form method="post" action="{{ url_for('editar_despesa', despesa_id=d.id) }}">
+<td><input type="date" name="data" value="{{ d.data.isoformat() }}" required></td>
+<td><input name="descricao" value="{{ d.descricao }}" required></td>
+<td><input name="valor" value="{{ '%.2f'|format(d.valor)|replace('.', ',') }}" required></td>
+<td style="display:flex;gap:6px"><button type="submit">Salvar</button></form>
+<form method="post" action="{{ url_for('excluir_despesa', despesa_id=d.id) }}" onsubmit="return confirm('Excluir esta despesa?')"><button type="submit" class="danger">Excluir</button></form></td>
+</tr>
+{% endfor %}
+</tbody></table></div>
+{% else %}<p>Nenhuma despesa lançada.</p>{% endif %}
+</div></section>
+{% endblock %}

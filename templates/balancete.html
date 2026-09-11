@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block content %}
+<a class="back" href="{{ url_for('index', ano=ano) }}">← Voltar para unidades</a>
+<section class="hero dashboard-hero">
+  <div>
+    <div class="eyebrow">Transparência financeira</div>
+    <h1>Balancete do condomínio</h1>
+    <p>Resumo financeiro completo de {{ ano }}.</p>
+  </div>
+  <div class="year-badge"><small>Ano</small><strong>{{ ano }}</strong></div>
+</section>
+
+<div class="cards balance-cards">
+  <div><small>Saldo inicial</small><b>R$ {{ '%.2f'|format(caixa_inicial)|replace('.', ',') }}</b></div>
+  <div><small>Total de receitas</small><b class="green-number">R$ {{ '%.2f'|format(total_receitas)|replace('.', ',') }}</b></div>
+  <div><small>Total de despesas</small><b class="red-number">R$ {{ '%.2f'|format(total_despesas)|replace('.', ',') }}</b></div>
+  <div><small>Saldo atual</small><b class="balance-total">R$ {{ '%.2f'|format(saldo)|replace('.', ',') }}</b></div>
+</div>
+
+<section class="panel">
+  <div class="payment-title-row">
+    <h2>Receitas por unidade</h2>
+    <p>Total efetivamente pago no ano.</p>
+  </div>
+  <div class="month-list">
+    {% for u in unidades %}
+    <div class="month-row balance-row">
+      <strong>{{ u.numero }} — {{ u.responsavel }}</strong>
+      <span>R$ {{ '%.2f'|format(receitas_por_unidade.get(u.id, 0))|replace('.', ',') }}</span>
+      <span class="blue-label">Receita</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="panel">
+  <div class="payment-title-row">
+    <h2>Despesas de {{ ano }}</h2>
+    <p>Todas as despesas lançadas no período.</p>
+  </div>
+  {% if despesas %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Data</th><th>Descrição</th><th>Valor</th></tr></thead>
+      <tbody>
+      {% for d in despesas %}
+        <tr><td>{{ d.data.strftime('%d/%m/%Y') }}</td><td>{{ d.descricao }}</td><td>R$ {{ '%.2f'|format(d.valor)|replace('.', ',') }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty">Nenhuma despesa lançada em {{ ano }}.</div>
+  {% endif %}
+</section>
+
+<section class="panel balance-final">
+  <div><span>Saldo inicial</span><strong>R$ {{ '%.2f'|format(caixa_inicial)|replace('.', ',') }}</strong></div>
+  <div><span>+ Receitas</span><strong class="green-number">R$ {{ '%.2f'|format(total_receitas)|replace('.', ',') }}</strong></div>
+  <div><span>− Despesas</span><strong class="red-number">R$ {{ '%.2f'|format(total_despesas)|replace('.', ',') }}</strong></div>
+  <div class="final-total"><span>Saldo do condomínio</span><strong>R$ {{ '%.2f'|format(saldo)|replace('.', ',') }}</strong></div>
+</section>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="public-topbar">
+  <div class="brand-block">
+    <div class="brand-icon">🏢</div>
+    <div><strong>Condomínio Vila Rian</strong><span>Sistema de contas</span></div>
+  </div>
+  <div class="public-actions">
+    <div class="year-selector">📅 <strong>{{ ano }}</strong>⌄</div>
+    <div class="resident-label">👤 Morador⌄</div>
+  </div>
+</section>
+
+<div class="public-dashboard">
+  <div class="public-main">
+    <div class="public-heading">
+      <div>
+        <div class="eyebrow">Prestação de contas</div>
+        <h1>Unidades ({{ unidades|length }})</h1>
+      </div>
+    </div>
+
+    <div class="deadline-info">
+      <div class="deadline-message"><span class="info-circle">i</span><div><strong>Mensalidade com vencimento todo dia 10 de cada mês.</strong><small>Após o dia 10, se não houver pagamento, a unidade ficará em atraso.</small></div></div>
+      <div class="legend"><span><i class="legend-dot ok">✓</i> Em dia</span><span><i class="legend-dot pending">!</i> Em atraso</span><span><i class="legend-dot future">◷</i> Não vencido</span></div>
+    </div>
+
+    <div class="units-grid public-units">
+      {% for u in unidades %}
+      {% set resumo = resumos[u.id] %}
+      <article class="unit-card public-unit-card {{ 'unit-overdue' if not resumo.em_dia else '' }}">
+        <div class="unit-card-main">
+          <div class="house-icon house-color">🏠</div>
+          <div class="unit-info">
+            <strong>{{ u.numero }} - {{ u.responsavel|upper }}</strong>
+            <span>Total pago em {{ ano }}</span>
+            <b>R$ {{ '%.2f'|format(resumo.total)|replace('.', ',') }}</b>
+          </div>
+        </div>
+        <div class="unit-card-side">
+          <div class="paid-count {{ 'complete' if resumo.em_dia else '' }}">
+            <i class="status-dot {{ 'ok' if resumo.em_dia else 'pending' }}">{{ '✓' if resumo.em_dia else '!' }}</i>
+            <strong>{{ resumo.meses }}/12</strong>
+            <small>meses pagos</small>
+          </div>
+          <a class="view-button {{ 'overdue' if not resumo.em_dia else '' }}" href="{{ url_for('unidade', unidade_id=u.id, ano=ano) }}">Ver <span>›</span></a>
+        </div>
+      </article>
+      {% else %}
+      <div class="empty">Nenhuma unidade cadastrada.</div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <aside class="public-sidebar">
+    <a class="balance-hero" href="{{ url_for('balancete', ano=ano) }}">
+      <div><div class="balance-icon">▥</div></div>
+      <div><strong>Balancete do Condomínio</strong><span>Ver resumo financeiro de {{ ano }}</span></div>
+      <b>›</b>
+    </a>
+
+    <section class="sidebar-card">
+      <div class="sidebar-title"><span class="chart-icon">◔</span><h2>Resumo do Ano - {{ ano }}</h2></div>
+      <div class="financial-list">
+        <div><span>Saldo inicial</span><strong>R$ {{ '%.2f'|format(caixa_inicial)|replace('.', ',') }}</strong></div>
+        <div><span>Receitas</span><strong class="green-number">R$ {{ '%.2f'|format(total_receitas)|replace('.', ',') }}</strong></div>
+        <div><span>Despesas</span><strong class="red-number">R$ {{ '%.2f'|format(total_despesas)|replace('.', ',') }}</strong></div>
+        <div class="current-balance"><span>Saldo atual</span><strong>R$ {{ '%.2f'|format(saldo)|replace('.', ',') }}</strong></div>
+      </div>
+      <a class="full-balance" href="{{ url_for('balancete', ano=ano) }}">📄 Ver balancete completo</a>
+    </section>
+
+    <section class="sidebar-card deadline-card">
+      <div class="sidebar-title"><span class="calendar-icon">▣</span><h2>Vencimento das mensalidades</h2></div>
+      <p><strong>Todo dia 10 de cada mês.</strong><br>Após o dia 10, se não houver pagamento, a unidade ficará em atraso.</p>
+    </section>
+
+    <section class="sidebar-card documents-card">
+      <div><span class="doc-icon">▤</span><div><strong>Documentos</strong><small>Regulamento, atas e comunicados</small></div></div>
+      <span>›</span>
+    </section>
+  </aside>
+</div>
+
+<div class="public-footer"><span>Condomínio Vila Rian - Sistema de contas</span><span>Transparência e organização para todos &nbsp; | &nbsp; {{ ano }}</span></div>
+{% endblock %}
