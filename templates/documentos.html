@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="section-heading"><div><div class="eyebrow">Transparência</div><h1 class="section-title">Documentos do Condomínio</h1></div><a class="button" href="{{ url_for('index') }}">← Voltar</a></div>
+<section class="panel">
+<p style="color:#667085">Regulamento, atas, comunicados e fotos disponibilizados pela administração.</p>
+{% if documentos %}
+<div class="document-grid">
+{% for doc in documentos %}
+<a class="document-card" href="{{ url_for('abrir_documento', documento_id=doc.id) }}" target="_blank">
+<div class="document-card-icon">{{ '🖼️' if doc.mime_type.startswith('image/') else '📄' }}</div>
+<div><strong>{{ doc.nome }}</strong><small>{{ doc.nome_arquivo }} · {{ '%.1f'|format(doc.tamanho / 1048576) }} MB</small></div><span>›</span>
+</a>
+{% endfor %}
+</div>
+{% else %}<div class="empty">Nenhum documento disponível no momento.</div>{% endif %}
+</section>
+{% endblock %}

@@ -3,9 +3,11 @@ from decimal import Decimal
 from datetime import date, datetime
 from functools import wraps
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+from io import BytesIO
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-change-this')
@@ -70,6 +72,16 @@ class Despesa(db.Model):
     fornecedor = db.Column(db.String(160))
     valor = db.Column(db.Numeric(12, 2), nullable=False)
     observacao = db.Column(db.String(255))
+
+class Documento(db.Model):
+    __table_args__ = table_args()
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(255), nullable=False)
+    nome_arquivo = db.Column(db.String(255), nullable=False)
+    mime_type = db.Column(db.String(120), nullable=False)
+    tamanho = db.Column(db.Integer, nullable=False, default=0)
+    conteudo = db.Column(db.LargeBinary, nullable=False)
+    criado_em = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
 
 def initialize_database_on_startup():
@@ -187,6 +199,58 @@ def sair():
     session.clear()
     return redirect(url_for('index'))
 
+@app.route('/documentos')
+def documentos():
+    documentos = Documento.query.order_by(Documento.criado_em.desc(), Documento.id.desc()).all()
+    return render_template('documentos.html', documentos=documentos)
+
+@app.route('/documento/<int:documento_id>')
+def abrir_documento(documento_id):
+    documento = Documento.query.get_or_404(documento_id)
+    return send_file(BytesIO(documento.conteudo), mimetype=documento.mime_type,
+                     download_name=documento.nome_arquivo, as_attachment=False)
+
+@app.route('/admin/documento', methods=['POST'])
+@admin_required
+def cadastrar_documento():
+    arquivo = request.files.get('arquivo')
+    nome = request.form.get('nome', '').strip()
+    if not arquivo or not arquivo.filename:
+        flash('Selecione um arquivo.', 'error')
+        return redirect(url_for('admin'))
+    if not nome:
+        nome = secure_filename(arquivo.filename) or 'Documento'
+    extensoes_permitidas = {'.pdf', '.jpg', '.jpeg', '.png', '.webp'}
+    original = secure_filename(arquivo.filename)
+    extensao = '.' + original.rsplit('.', 1)[1].lower() if '.' in original else ''
+    if extensao not in extensoes_permitidas:
+        flash('Tipo de arquivo não permitido. Use PDF, JPG, JPEG, PNG ou WEBP.', 'error')
+        return redirect(url_for('admin'))
+    conteudo = arquivo.read()
+    limite = 15 * 1024 * 1024
+    if len(conteudo) > limite:
+        flash('Arquivo muito grande. O limite é de 15 MB.', 'error')
+        return redirect(url_for('admin'))
+    mime_type = arquivo.mimetype or 'application/octet-stream'
+    permitidos_mime = {'application/pdf', 'image/jpeg', 'image/png', 'image/webp'}
+    if mime_type not in permitidos_mime:
+        flash('Tipo MIME do arquivo não permitido.', 'error')
+        return redirect(url_for('admin'))
+    db.session.add(Documento(nome=nome, nome_arquivo=original or nome, mime_type=mime_type,
+                             tamanho=len(conteudo), conteudo=conteudo))
+    db.session.commit()
+    flash('Documento enviado com sucesso.', 'success')
+    return redirect(url_for('admin'))
+
+@app.route('/admin/documento/<int:documento_id>/excluir', methods=['POST'])
+@admin_required
+def excluir_documento(documento_id):
+    documento = Documento.query.get_or_404(documento_id)
+    db.session.delete(documento)
+    db.session.commit()
+    flash('Documento excluído com sucesso.', 'success')
+    return redirect(url_for('admin'))
+
 @app.route('/unidade/<int:unidade_id>')
 def unidade(unidade_id):
     u = Unidade.query.get_or_404(unidade_id)
@@ -242,7 +306,8 @@ def admin():
         query = Despesa.query
     despesas = query.order_by(Despesa.data.desc(), Despesa.id.desc()).all()
     total_despesas = sum((Decimal(d.valor) for d in despesas), Decimal('0'))
-    return render_template('admin.html', unidades=unidades, pagamentos=pagamentos, despesas=despesas,
+    documentos = Documento.query.order_by(Documento.criado_em.desc(), Documento.id.desc()).all()
+    return render_template('admin.html', unidades=unidades, pagamentos=pagamentos, despesas=despesas, documentos=documentos,
                            despesa_inicio=inicio_raw, despesa_fim=fim_raw, total_despesas=total_despesas)
 
 @app.route('/admin/configuracao', methods=['POST'])

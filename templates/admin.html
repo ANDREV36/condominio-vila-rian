@@ -40,4 +40,19 @@
 </tbody></table></div>
 {% else %}<p>Nenhuma despesa lançada.</p>{% endif %}
 </div></section>
+
+<section class="panel collapsible"><div class="box-header"><button type="button" class="accordion-arrow" aria-expanded="false" aria-controls="box-documentos">▶</button><span>Documentos e fotos</span></div><div id="box-documentos" class="box-body" hidden>
+<form method="post" action="{{ url_for('cadastrar_documento') }}" enctype="multipart/form-data">
+<label>Nome do documento<input name="nome" placeholder="Ex.: Regulamento do Condomínio"></label>
+<label>Arquivo<input type="file" name="arquivo" accept=".pdf,.jpg,.jpeg,.png,.webp" required></label>
+<small style="color:#667085">Formatos: PDF, JPG, JPEG, PNG ou WEBP · máximo 15 MB.</small>
+<button>Enviar documento</button>
+</form>
+{% if documentos %}
+<div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Documento</th><th>Tipo</th><th>Tamanho</th><th>Ações</th></tr></thead><tbody>
+{% for doc in documentos %}<tr><td>{{ doc.nome }}</td><td>{{ doc.mime_type }}</td><td>{{ '%.1f'|format(doc.tamanho / 1048576) }} MB</td><td style="display:flex;gap:6px"><a class="button" href="{{ url_for('abrir_documento', documento_id=doc.id) }}" target="_blank">Abrir</a><form method="post" action="{{ url_for('excluir_documento', documento_id=doc.id) }}" onsubmit="return confirm('Excluir este documento?')"><button type="submit" class="danger">Excluir</button></form></td></tr>{% endfor %}
+</tbody></table></div>
+{% else %}<p>Nenhum documento enviado.</p>{% endif %}
+</div></section>
+
 {% endblock %}
