@@ -10,6 +10,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-change-this')
 db_url = os.getenv('DATABASE_URL', 'sqlite:///condominio.db')
+IS_POSTGRES = db_url.startswith(('postgres://', 'postgresql://'))
+DB_SCHEMA = 'vila_rian' if IS_POSTGRES else None
 if db_url.startswith('postgres://'):
     db_url = db_url.replace('postgres://', 'postgresql+psycopg://', 1)
 if db_url.startswith('postgresql://'):
@@ -18,20 +20,31 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+def ensure_postgres_schema():
+    if IS_POSTGRES:
+        with db.engine.begin() as conn:
+            conn.exec_driver_sql(f'CREATE SCHEMA IF NOT EXISTS {DB_SCHEMA}')
+
+def table_args():
+    return {'schema': DB_SCHEMA} if DB_SCHEMA else {}
+
 class Configuracao(db.Model):
+    __table_args__ = table_args()
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(120), nullable=False, default='Condomínio Vila Rian')
     caixa_inicial = db.Column(db.Numeric(12, 2), nullable=False, default=0)
 
 class Usuario(db.Model):
+    __table_args__ = table_args()
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(120), nullable=False)
     email = db.Column(db.String(160), unique=True, nullable=False)
     senha_hash = db.Column(db.String(255), nullable=False)
     admin = db.Column(db.Boolean, default=False, nullable=False)
-    unidade_id = db.Column(db.Integer, db.ForeignKey('unidade.id'), nullable=True)
+    unidade_id = db.Column(db.Integer, db.ForeignKey(f'{DB_SCHEMA}.unidade.id' if DB_SCHEMA else 'unidade.id'), nullable=True)
 
 class Unidade(db.Model):
+    __table_args__ = table_args()
     id = db.Column(db.Integer, primary_key=True)
     numero = db.Column(db.String(30), unique=True, nullable=False)
     responsavel = db.Column(db.String(120), nullable=False)
@@ -39,8 +52,9 @@ class Unidade(db.Model):
     ativa = db.Column(db.Boolean, default=True, nullable=False)
 
 class Pagamento(db.Model):
+    __table_args__ = table_args()
     id = db.Column(db.Integer, primary_key=True)
-    unidade_id = db.Column(db.Integer, db.ForeignKey('unidade.id'), nullable=False)
+    unidade_id = db.Column(db.Integer, db.ForeignKey(f'{DB_SCHEMA}.unidade.id' if DB_SCHEMA else 'unidade.id'), nullable=False)
     competencia = db.Column(db.String(7), nullable=False)  # YYYY-MM
     data_pagamento = db.Column(db.Date, nullable=False)
     valor = db.Column(db.Numeric(12, 2), nullable=False)
@@ -48,6 +62,7 @@ class Pagamento(db.Model):
     unidade = db.relationship('Unidade', backref='pagamentos')
 
 class Despesa(db.Model):
+    __table_args__ = table_args()
     id = db.Column(db.Integer, primary_key=True)
     data = db.Column(db.Date, nullable=False)
     categoria = db.Column(db.String(100), nullable=False)
@@ -55,6 +70,18 @@ class Despesa(db.Model):
     fornecedor = db.Column(db.String(160))
     valor = db.Column(db.Numeric(12, 2), nullable=False)
     observacao = db.Column(db.String(255))
+
+
+def initialize_database_on_startup():
+    """Ensure the production PostgreSQL schema and tables exist before requests."""
+    with app.app_context():
+        ensure_postgres_schema()
+        db.create_all()
+
+
+# Gunicorn imports app.py without executing the __main__ block.
+# Initialize the schema/tables during import so production starts cleanly.
+initialize_database_on_startup()
 
 
 def admin_required(fn):
@@ -326,6 +353,7 @@ def excluir_despesa(despesa_id):
 
 @app.cli.command('init-db')
 def init_db():
+    ensure_postgres_schema()
     db.create_all()
     if not Configuracao.query.first():
         db.session.add(Configuracao(nome='Condomínio Vila Rian', caixa_inicial=0))
@@ -439,6 +467,7 @@ def importar_pagamentos_2026_web():
 
 if __name__ == '__main__':
     with app.app_context():
+        ensure_postgres_schema()
         db.create_all()
         config = Configuracao.query.first()
         if config:
