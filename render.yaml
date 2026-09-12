@@ -1,16 +1,11 @@
 services:
   - type: web
-    name: condominio-vila-ryan
+    name: condominio-vila-rian
     runtime: python
     buildCommand: pip install -r requirements.txt
     startCommand: gunicorn app:app
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: condominio-vila-ryan-db
-          property: connectionString
+        sync: false
       - key: SECRET_KEY
         generateValue: true
-
-databases:
-  - name: condominio-vila-ryan-db

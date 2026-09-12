@@ -1,0 +1,29 @@
+CONDOMÍNIO VILA RIAN — VERSÃO PRONTA
+
+IMPORTANTE: esta versão NÃO inclui o banco local instance\condominio.db.
+Seu banco local existente deve permanecer intacto.
+
+ORDEM RECOMENDADA:
+1. Faça backup da pasta atual C:\condominio-vila-rian-inicial.
+2. Extraia este ZIP em C:\condominio-vila-rian-inicial e escolha substituir os arquivos.
+3. NÃO apague a pasta instance e NÃO apague instance\condominio.db.
+4. No CMD, dentro da pasta do projeto, execute: git status
+5. Depois: git add .
+6. Depois: git commit -m "Versão pronta Vila Rian"
+7. Depois: git push origin main
+8. No Render, faça um novo deploy do serviço condominio-vila-rian.
+
+POSTGRESQL:
+- A aplicação usa o schema vila_rian quando DATABASE_URL é PostgreSQL.
+- Isso evita misturar as tabelas com os outros projetos do mesmo banco.
+- A migração do banco local para o PostgreSQL deve ser feita com migrar_postgres.py antes do uso público, se ainda não tiver sido concluída.
+
+ÍCONE:
+- O manifest.json e os ícones 180/192/512 já estão incluídos.
+- No iPhone: abra o endereço do sistema no Safari > Compartilhar > Adicionar à Tela de Início.
+
+DOCUMENTOS/FOTOS:
+- PDF, JPG, JPEG, PNG e WEBP.
+- Limite: 15 MB por arquivo.
+- O arquivo é armazenado no PostgreSQL dentro do ambiente Vila Rian.
+- O visualizador possui botão Voltar e Baixar.
